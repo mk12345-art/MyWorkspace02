@@ -2,13 +2,19 @@ const newsList = document.getElementById('news-list');
 const status = document.getElementById('status');
 const refreshButton = document.getElementById('refresh-button');
 
-const proxyBase = 'https://api.allorigins.win/raw?url=';
+const serverlessProxyBase = 'https://mk12345-art.github.io/MyWorkspace02/'; // ここにデプロイしたサーバーレス関数の URL を設定します。
+const proxyBases = serverlessProxyBase
+  ? [serverlessProxyBase]
+  : [
+      'https://api.allorigins.win/raw?url=',
+      'https://thingproxy.freeboard.io/fetch/'
+    ];
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const feedSources = [
   { title: 'NHK ニュース', url: 'https://www3.nhk.or.jp/rss/news/cat0.xml', region: '国内' },
-  { title: 'BBC News', url: 'http://feeds.bbci.co.uk/news/rss.xml', region: '海外' },
-  { title: 'CNN', url: 'http://rss.cnn.com/rss/edition.rss', region: '海外' }
+  { title: 'BBC News', url: 'https://feeds.bbci.co.uk/news/rss.xml', region: '海外' },
+  { title: 'CNN', url: 'https://rss.cnn.com/rss/edition.rss', region: '海外' }
 ];
 
 function parseFeed(xmlText, source) {
@@ -86,12 +92,23 @@ function renderNews(items) {
 }
 
 async function fetchFeed(source) {
-  const url = proxyBase + encodeURIComponent(source.url);
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${source.title} を取得できませんでした。`);
+  let lastError = null;
+
+  for (const base of proxyBases) {
+    const url = base + encodeURIComponent(source.url);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        lastError = new Error(`${source.title} を取得できませんでした。ステータス: ${response.status}`);
+        continue;
+      }
+      return response.text();
+    } catch (error) {
+      lastError = error;
+    }
   }
-  return response.text();
+
+  throw new Error(`${source.title} を取得できませんでした。${lastError?.message || ''}`);
 }
 
 async function loadNews() {
