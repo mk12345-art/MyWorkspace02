@@ -2,7 +2,7 @@ const newsList = document.getElementById('news-list');
 const status = document.getElementById('status');
 const refreshButton = document.getElementById('refresh-button');
 
-const serverlessProxyBase = 'https://mk12345-art.github.io/MyWorkspace02/'; // ここにデプロイしたサーバーレス関数の URL を設定します。
+const serverlessProxyBase = 'https://github.com/mk12345-art/MyWorkspace02/tree/main/news-app/functions/news-proxy?url= '; // ここにデプロイしたサーバーレス関数の URL を設定します。
 const proxyBases = serverlessProxyBase
   ? [serverlessProxyBase]
   : [

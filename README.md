@@ -32,6 +32,28 @@ GitHub Pages 自体はサーバーレス関数をホストできないため、�
 
 ### Netlify での使い方
 
-- `news-app/functions/news-proxy.js` は API プロキシとして機能します。
-- `news-app/netlify.toml` を追加済みです。
-- GitHub Pages の静的ファイルと関数ホストを組み合わせることで、CORS / mixed-content 問題を回避できます。
+1. `news-app` フォルダーを GitHub リポジトリにコミットします。
+2. Netlify にログインし、`news-app` フォルダーを新規サイトとしてデプロイします。
+   - GitHub 連携でリポジトリを選び、ブランチを指定します。
+   - ビルドコマンドは不要です。
+   - パブリッシュディレクトリは `news-app` ではなく `news-app` の中身が root になる構成です。Netlify の自動検出で問題なければそのままで OK です。
+3. `news-app/netlify.toml` は関数の場所を `functions` に設定し、静的ルートを `.` にしています。
+4. デプロイ完了後、Netlify が発行したサイト URL を確認します。
+5. `app.js` の `serverlessProxyBase` を次のように設定します。
+   - 例: `const serverlessProxyBase = 'https://your-netlify-site.netlify.app/.netlify/functions/news-proxy?url=';`
+   - `your-netlify-site` はそのままでは動きません。Netlify が発行したあなたのサイト名に必ず置き換えてください。
+6. GitHub Pages にデプロイしている静的サイトはそのまま使い、RSS 取得は Netlify 関数経由で行います。
+
+#### Netlify CLI でのデプロイ手順（任意）
+
+1. `npm install -g netlify-cli` を実行。
+2. `cd news-app` で移動。
+3. `netlify login` を実行してログイン。
+4. `netlify deploy --prod --dir=. --functions=functions` を実行。
+5. デプロイ後に通知される URL を `serverlessProxyBase` に設定します。
+
+#### 重要な補足
+
+- Netlify 関数 URL は `https://<your-site>.netlify.app/.netlify/functions/news-proxy?url=` の形式です。
+- GitHub Pages 上では `app.js` から直接 RSS を取得せず、Netlify 関数を経由してください。
+- `serverlessProxyBase` を設定すると、公開プロキシのフォールバックは使わなくなります。
